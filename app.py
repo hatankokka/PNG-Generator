@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
 import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
 import os
@@ -16,10 +13,10 @@ st.title("🖼 固定背景テキストジェネレーター（PNG版）")
 # ▼ 入力欄
 text = st.text_area("テキストを入力（自動縮小します）")
 
-# ▼ フォント設定
+# ▼ フォント設定（Regular に変更）
 font_size_max = 80
 font_size_min = 10
-font_path = os.path.join("fonts", "BIZUDMincho-Medium.ttf")
+font_path = os.path.join("fonts", "BIZUDMincho-Regular.ttf")  # ← 修正点
 
 # ▼ 背景PNG（固定）
 bg = Image.open("background.png").convert("RGBA")
@@ -70,13 +67,18 @@ if text:
 
     draw_outline(draw, x, y, text, font)
 
-    # 表示
+    # ▼ 表示
     st.image(img)
 
     # ▼ ダウンロード
     buf = io.BytesIO()
     img.save(buf, format="PNG")
-    st.download_button("画像をダウンロード", buf.getvalue(), "output.png", "image/png")
+    st.download_button(
+        "画像をダウンロード",
+        buf.getvalue(),
+        "output.png",
+        "image/png"
+    )
 
     # ▼ X投稿ボタン（投稿文なし）
     tweet_url = "https://twitter.com/intent/tweet"
@@ -98,4 +100,3 @@ if text:
         """,
         unsafe_allow_html=True
     )
-
