@@ -13,15 +13,26 @@ footer_text = st.text_input("下のヘッダー（署名・日付、フォント
 FONT_MAIN_MAX = 600
 FONT_MAIN_MIN = 150
 FONT_FOOTER   = 200
+
 font_path = os.path.join("fonts", "BIZUDMincho-Regular.ttf")
 
-# ▼ 背景PNG
-bg = Image.open("background.png").convert("RGBA")
+# ▼ フォント存在チェック
+if not os.path.exists(font_path):
+    st.error(f"フォントファイルが見つかりません: {font_path}")
+    st.stop()
+
+# ▼ 背景PNG読み込み（絶対に存在するかチェック）
+bg_path = "background.png"
+if not os.path.exists(bg_path):
+    st.error("background.png が見つかりません。大文字小文字も確認してください。")
+    st.stop()
+
+bg = Image.open(bg_path).convert("RGBA")
 W, H = bg.size
 
 # ▼ 本文のエリア（中央より少し下）
 CENTER_TOP    = int(H * 0.28)
-CENTER_BOTTOM = int(H * 0.70)   # ← 少し上にして本文とヘッダーが重ならないようにする
+CENTER_BOTTOM = int(H * 0.70)
 CENTER_LEFT   = int(W * 0.10)
 CENTER_RIGHT  = int(W * 0.90)
 
@@ -55,6 +66,7 @@ def autoshrink(draw, text, max_w, max_h):
 
         if w <= max_w and h <= max_h:
             return font, wrapped
+
         size -= 15
 
     return ImageFont.truetype(font_path, FONT_MAIN_MIN), text
@@ -82,18 +94,19 @@ if main_text:
 
     draw_outline(draw, x_main, y_main, wrapped, font_main)
 
-    # ▼ 正しいヘッダー位置（横線の上）
+    # ▼ ヘッダー位置（あなた指定：H * 0.90）
     if footer_text:
         font_footer = ImageFont.truetype(font_path, FONT_FOOTER)
         fw = draw.textbbox((0, 0), footer_text, font=font_footer)[2]
 
         x_footer = (W - fw)//2
-        y_footer = int(H * 0.83)  # ←←← この位置がベスト！（本文と重ならず横線にも近い）
+        y_footer = int(H * 0.90)   # ←←← あなたの要求どおり
 
         draw_outline(draw, x_footer, y_footer, footer_text, font_footer, width=5)
 
     st.image(img)
 
+    # ▼ ダウンロード
     buf = io.BytesIO()
     img.save(buf, "PNG")
     st.download_button("画像をダウンロード", buf.getvalue(), "output.png", "image/png")
