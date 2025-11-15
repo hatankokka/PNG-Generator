@@ -6,8 +6,8 @@ st.set_page_config(page_title="外交部ジェネレーター", layout="centered
 st.title("外交部風 画像ジェネレーター（本文600／ヘッダー200）")
 
 # ▼ 入力欄
-main_text = st.text_area("本文（最大600px、自動縮小）", "")
-footer_text = st.text_input("下ヘッダー（署名・日付、フォント200固定）", "")
+main_text = st.text_area("本文（最大600px、超大型）", "")
+footer_text = st.text_input("下のヘッダー（署名・日付、フォント200固定）", "")
 
 # ▼ フォント設定
 FONT_MAIN_MAX = 600
@@ -17,11 +17,11 @@ font_path = os.path.join("fonts", "BIZUDMincho-Regular.ttf")
 
 # ▼ 背景PNG
 bg = Image.open("background.png").convert("RGBA")
-W, H = bg.size   # 1601 × 2048
+W, H = bg.size
 
-# ▼ 本文エリア（高さを小さくしてヘッダーとの衝突を防ぐ）
+# ▼ 本文のエリア（中央より少し下）
 CENTER_TOP    = int(H * 0.28)
-CENTER_BOTTOM = int(H * 0.68)   # ← 下げすぎないように調整
+CENTER_BOTTOM = int(H * 0.70)   # ← 少し上にして本文とヘッダーが重ならないようにする
 CENTER_LEFT   = int(W * 0.10)
 CENTER_RIGHT  = int(W * 0.90)
 
@@ -33,7 +33,7 @@ def wrap_text(text, draw, font, max_width):
     lines, cur = [], ""
     for ch in text:
         t = cur + ch
-        w,_ = draw.textbbox((0,0), t, font=font)[2:]
+        w,_ = draw.textbbox((0, 0), t, font=font)[2:]
         if w <= max_width:
             cur = t
         else:
@@ -48,15 +48,18 @@ def autoshrink(draw, text, max_w, max_h):
     while size >= FONT_MAIN_MIN:
         font = ImageFont.truetype(font_path, size)
         wrapped = wrap_text(text, draw, font, max_w)
-        bbox = draw.multiline_textbbox((0,0), wrapped, font=font)
+
+        bbox = draw.multiline_textbbox((0, 0), wrapped, font=font)
         w = bbox[2] - bbox[0]
         h = bbox[3] - bbox[1]
+
         if w <= max_w and h <= max_h:
             return font, wrapped
         size -= 15
+
     return ImageFont.truetype(font_path, FONT_MAIN_MIN), text
 
-# ▼ 縁取り
+# ▼ outline
 def draw_outline(draw, x, y, text, font, fill="#FFF", width=8):
     for ox in range(-width, width+1):
         for oy in range(-width, width+1):
@@ -68,25 +71,26 @@ if main_text:
     img = bg.copy()
     draw = ImageDraw.Draw(img)
 
+    # 本文
     font_main, wrapped = autoshrink(draw, main_text, CENTER_W, CENTER_H)
-
     bbox = draw.multiline_textbbox((0,0), wrapped, font=font_main)
     tw = bbox[2] - bbox[0]
     th = bbox[3] - bbox[1]
+
     x_main = CENTER_LEFT + (CENTER_W - tw)//2
     y_main = CENTER_TOP + (CENTER_H - th)//2
 
     draw_outline(draw, x_main, y_main, wrapped, font_main)
 
-    # ▼ ヘッダーの位置を「絶対位置」で固定（これが最適）
+    # ▼ 正しいヘッダー位置（横線の上）
     if footer_text:
         font_footer = ImageFont.truetype(font_path, FONT_FOOTER)
-        fw = draw.textbbox((0,0), footer_text, font=font_footer)[2]
+        fw = draw.textbbox((0, 0), footer_text, font=font_footer)[2]
 
         x_footer = (W - fw)//2
-        y_footer = 1700   # ← 背景横線の直上に固定（あなたのPNG専用）
+        y_footer = int(H * 0.83)  # ←←← この位置がベスト！（本文と重ならず横線にも近い）
 
-        draw_outline(draw, x_footer, y_footer, footer_text, font_footer, width=6)
+        draw_outline(draw, x_footer, y_footer, footer_text, font_footer, width=5)
 
     st.image(img)
 
