@@ -21,7 +21,7 @@ W, H = bg.size
 
 # ▼ 本文のエリア（中央より少し下）
 CENTER_TOP    = int(H * 0.28)
-CENTER_BOTTOM = int(H * 0.70)
+CENTER_BOTTOM = int(H * 0.70)   # ← 少し上にして本文とヘッダーが重ならないようにする
 CENTER_LEFT   = int(W * 0.10)
 CENTER_RIGHT  = int(W * 0.90)
 
@@ -55,7 +55,6 @@ def autoshrink(draw, text, max_w, max_h):
 
         if w <= max_w and h <= max_h:
             return font, wrapped
-
         size -= 15
 
     return ImageFont.truetype(font_path, FONT_MAIN_MIN), text
@@ -77,17 +76,19 @@ if main_text:
     bbox = draw.multiline_textbbox((0,0), wrapped, font=font_main)
     tw = bbox[2] - bbox[0]
     th = bbox[3] - bbox[1]
+
     x_main = CENTER_LEFT + (CENTER_W - tw)//2
     y_main = CENTER_TOP + (CENTER_H - th)//2
+
     draw_outline(draw, x_main, y_main, wrapped, font_main)
 
-    # ▼ ヘッダー（y_footer = H * 0.90）
+    # ▼ 正しいヘッダー位置（横線の上）
     if footer_text:
         font_footer = ImageFont.truetype(font_path, FONT_FOOTER)
-        fw = draw.textbbox((0,0), footer_text, font=font_footer)[2]
+        fw = draw.textbbox((0, 0), footer_text, font=font_footer)[2]
 
         x_footer = (W - fw)//2
-        y_footer = int(H * 0.90)   # ← ★ここをあなたの指定どおり修正 ★
+        y_footer = int(H * 0.83)  # ←←← この位置がベスト！（本文と重ならず横線にも近い）
 
         draw_outline(draw, x_footer, y_footer, footer_text, font_footer, width=5)
 
